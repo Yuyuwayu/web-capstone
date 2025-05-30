@@ -27,3 +27,11 @@ npm run dev
 ```sh
 npm run build
 ```
+## Arduino Integration
+To enable Arduino communication, run the Arduino server:
+
+```sh
+cd arduino
+node server.js
+```
+
