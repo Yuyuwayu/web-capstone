@@ -15,17 +15,30 @@
       </section>
 
       <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <!-- Deteksi Nafsu Makan Otomatis -->
         <section class="bg-white p-6 rounded-xl shadow-md">
           <h2 class="text-lg font-semibold mb-4 text-gray-800">Deteksi Nafsu Makan Otomatis</h2>
-          <p class="mb-2 text-gray-600">Status: <span class="font-semibold text-green-600">{{ appetiteStatus }}</span></p>
-          <img :src="appetiteImage" alt="Hasil Deteksi" class="w-full rounded-lg border shadow" />
+          <p class="mb-2 text-gray-600">Status:
+            <span class="font-semibold text-green-600">{{ appetiteStatus }}</span>
+          </p>
+          <img :src="appetiteImage" alt="Hasil Deteksi" class="w-full rounded-lg border shadow mb-4" />
+
+          <div v-if="videoUrl">
+            <button @click="showVideo = !showVideo" class="mb-2 text-sm text-blue-600 hover:underline">
+              {{ showVideo ? 'Sembunyikan Video' : 'Lihat Video Deteksi' }}
+            </button>
+            <video v-if="showVideo" controls class="w-full rounded-lg shadow">
+              <source :src="videoUrl" type="video/mp4" />
+              Browser Anda tidak mendukung video.
+            </video>
+          </div>
         </section>
 
+        <!-- Riwayat Nafsu Makan -->
         <section class="bg-white p-6 rounded-xl shadow-md">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Riwayat Nafsu Makan</h2>
-            <button @click="resetData"
-                    class="text-sm text-red-600 hover:underline font-medium">Reset Data</button>
+            <button @click="resetData" class="text-sm text-red-600 hover:underline font-medium">Reset Data</button>
           </div>
           <div class="overflow-x-auto">
             <table class="min-w-full text-sm divide-y divide-gray-200">
@@ -36,9 +49,9 @@
               </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-              <tr v-for="(item, index) in history" :key="index" class="border-t">
-                <td class="text-sm text-gray-700 px-4 py-2">{{ item.timestamp }}</td>
-                <td class="text-sm text-gray-700 px-4 py-2">{{ item.appetite }}</td>
+              <tr v-for="(item, index) in history" :key="index">
+                <td class="px-4 py-2 text-gray-700">{{ item.timestamp }}</td>
+                <td class="px-4 py-2 text-gray-700">{{ item.appetite }}</td>
               </tr>
               </tbody>
             </table>
@@ -46,11 +59,13 @@
         </section>
       </div>
 
+      <!-- Grafik -->
       <section class="bg-white p-4 rounded-2xl shadow mb-6">
         <h2 class="text-xl font-semibold mb-2">Grafik Perubahan Parameter</h2>
         <LineChart :chart-data="chartData" />
       </section>
 
+      <!-- Riwayat Sensor -->
       <div class="bg-white p-6 rounded-xl shadow-md">
         <h2 class="text-lg font-semibold mb-4 text-gray-800">Riwayat Data Sensor</h2>
         <div class="overflow-x-auto">
@@ -64,11 +79,11 @@
             </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-            <tr v-for="(item, index) in history" :key="index" class="border-t">
-              <td class="text-sm text-gray-700 px-4 py-2">{{ item.timestamp }}</td>
-              <td class="text-sm text-gray-700 px-4 py-2">{{ item.temperature }}°C</td>
-              <td class="text-sm text-gray-700 px-4 py-2">{{ item.ph }}</td>
-              <td class="text-sm text-gray-700 px-4 py-2">{{ item.turbidity }} NTU</td>
+            <tr v-for="(item, index) in history" :key="index">
+              <td class="px-4 py-2 text-gray-700">{{ item.timestamp }}</td>
+              <td class="px-4 py-2 text-gray-700">{{ item.temperature }}°C</td>
+              <td class="px-4 py-2 text-gray-700">{{ item.ph }}</td>
+              <td class="px-4 py-2 text-gray-700">{{ item.turbidity }} NTU</td>
             </tr>
             </tbody>
           </table>
@@ -92,6 +107,7 @@ const sensorData = useLocalStorage('sensorData', {
   turbidity: 0,
   appetite: '-'
 })
+
 const history = useLocalStorage('historyData', [])
 
 const chartData = ref({
@@ -105,13 +121,15 @@ const chartData = ref({
 
 const appetiteStatus = ref('Memuat...')
 const appetiteImage = ref('')
-let intervalId
+const videoUrl = ref('')
+const showVideo = ref(false)
 
 const fetchDetection = async () => {
   try {
     const res = await axios.get('http://localhost:8000/deteksi')
     appetiteStatus.value = res.data.status
     appetiteImage.value = `data:image/jpeg;base64,${res.data.image}`
+    videoUrl.value = res.data.video_url || ''
     sensorData.value.appetite = res.data.status
 
     const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ')
@@ -122,13 +140,13 @@ const fetchDetection = async () => {
       turbidity: sensorData.value.turbidity,
       appetite: res.data.status
     })
+
     updateChart()
   } catch (err) {
     appetiteStatus.value = 'Gagal mendeteksi'
     console.error('Error dari localhost:8000:', err)
   }
 }
-
 
 const fetchSensorData = async () => {
   try {
@@ -160,6 +178,8 @@ const resetData = () => {
   chartData.value.datasets.forEach(ds => (ds.data = []))
 }
 
+let intervalId
+
 onMounted(() => {
   fetchSensorData()
   fetchDetection()
@@ -173,4 +193,3 @@ onUnmounted(() => {
   clearInterval(intervalId)
 })
 </script>
-
