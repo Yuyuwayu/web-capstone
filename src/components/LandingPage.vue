@@ -16,12 +16,28 @@
 
       <div class="grid md:grid-cols-2 gap-6 mb-6">
         <!-- Deteksi Nafsu Makan Otomatis -->
+        <!-- Deteksi Nafsu Makan Otomatis -->
         <section class="bg-white p-6 rounded-xl shadow-md">
-          <h2 class="text-lg font-semibold mb-4 text-gray-800">Deteksi Nafsu Makan Otomatis</h2>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Deteksi Nafsu Makan Otomatis</h2>
+            <button
+                @click="fetchDetection"
+                class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+            >
+              Deteksi Sekarang
+            </button>
+          </div>
+
           <p class="mb-2 text-gray-600">Status:
             <span class="font-semibold text-green-600">{{ appetiteStatus }}</span>
           </p>
-          <img :src="appetiteImage" alt="Hasil Deteksi" class="w-full rounded-lg border shadow mb-4" />
+
+          <img
+              v-if="appetiteImage"
+              :src="appetiteImage"
+              alt="Hasil Deteksi"
+              class="w-full rounded-lg border shadow mb-4"
+          />
 
           <div v-if="videoUrl">
             <button @click="showVideo = !showVideo" class="mb-2 text-sm text-blue-600 hover:underline">
@@ -33,6 +49,7 @@
             </video>
           </div>
         </section>
+
 
         <!-- Riwayat Nafsu Makan -->
         <section class="bg-white p-6 rounded-xl shadow-md">
@@ -182,12 +199,9 @@ let intervalId
 
 onMounted(() => {
   fetchSensorData()
-  fetchDetection()
-  intervalId = setInterval(async () => {
-    await fetchSensorData()
-    await fetchDetection()
-  }, 5000)
+  intervalId = setInterval(fetchSensorData, 5000) // hanya sensor, tanpa deteksi
 })
+
 
 onUnmounted(() => {
   clearInterval(intervalId)
