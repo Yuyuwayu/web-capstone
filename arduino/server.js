@@ -10,12 +10,22 @@ let dataSensor = [];
 let waktuMakanTerakhir = null;
 
 // Route dari ESP32
-app.post("/kirim-data", (req, res) => {
-    const { suhu, ph, kekeruhan, waktu_makan } = req.body;
+app.post("/kirim-sensor", (req, res) => {
+    const { temperature, ph, turbidity, feed_level, distance, waktu_makan } = req.body;
     const waktu = new Date().toISOString();
 
-    dataSensor.push({ suhu, ph, kekeruhan, waktu, waktu_makan });
+    // Simpan data ke array
+    dataSensor.push({
+        suhu: temperature,
+        ph,
+        kekeruhan: turbidity,
+        feed_level,
+        jarak: distance,
+        waktu,
+        waktu_makan: waktu_makan || null
+    });
 
+    // Simpan waktu makan terakhir jika ada
     if (waktu_makan) {
         waktuMakanTerakhir = waktu_makan;
     }
